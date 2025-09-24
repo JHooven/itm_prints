@@ -3,10 +3,10 @@
 #![allow(clippy::empty_loop)]
 #![allow(dead_code)]
 
-use cortex_m::peripheral::syst::SystClkSource;
+// use cortex_m::peripheral::syst::SystClkSource; // No longer needed
 //use board::*;
 use button::*;
-//use cortex_m::delay::{self, Delay};
+use cortex_m::delay::Delay;
 use core::panic::PanicInfo;
 use led::*;
 use rtt_target::{rprintln, rtt_init_print};
@@ -54,26 +54,28 @@ fn main() {
         Mode::Interrupt(Trigger::FallingEdge),
     );
 
-    let mut cp = init_cortex_m_peripherals!();
+    let cp = init_cortex_m_peripherals!();
 
     // Initialize RTT for debug output
     rtt_init_print!();
     
     rprintln!("RTT Debug: Starting rtt_prints on STM32F429I-DISCO");
 
-    systick_init(&mut cp);
-    rprintln!("RTT Debug: SysTick initialized");
+    // Create a delay instance - assuming 16MHz system clock
+    let mut delay = Delay::new(cp.SYST, 16_000_000);
+    rprintln!("RTT Debug: Delay initialized");
     
     let mut counter = 0;
     loop {
-        // Blink LED to show we're alive
-        for _ in 0..2000000 {
-            cortex_m::asm::nop();
-        }
+        // Blink LED to show we're alive - delay for 500ms
+        delay.delay_ms(500u32);
         led_toggle(GREEN_LED_PORT, GREEN_LED_PIN);
         
         counter += 1;
-        rprintln!("RTT Debug: Loop iteration {}, LED toggled", counter);
+        cortex_m::interrupt::free(|_| {
+            // Critical section to safely read button state if needed
+            rprintln!("RTT Debug: Loop iteration {}, LED toggled", counter);
+        });
     }
 }
 
@@ -84,19 +86,24 @@ fn panic_handler(_info: &PanicInfo) -> ! {
     }
 }
 
-fn systick_init(cp: &mut cortex_m::Peripherals) {
-    cp.SYST.set_clock_source(SystClkSource::Core);
-    cp.SYST.set_reload(4_000_000); // 1/4 second at 16 MHz
-    cp.SYST.enable_counter();
-    cp.SYST.enable_interrupt();
-}
+// Commented out since Delay::new() handles SysTick configuration
+// fn systick_init(cp: &mut cortex_m::Peripherals) {
+//     cp.SYST.set_clock_source(SystClkSource::Core);
+//     cp.SYST.set_reload(4_000_000); // 1/4 second at 16 MHz
+//     cp.SYST.enable_counter();
+//     cp.SYST.enable_interrupt();
+// }
 
 //button interrupt handler
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
 extern "C" fn EXTI0_Handler() {
-    rprintln!("RTT Debug: Button pressed!");
-    led_toggle(RED_LED_PORT, RED_LED_PIN);
-    led_toggle(GREEN_LED_PORT, GREEN_LED_PORT);
+    
+    cortex_m::interrupt::free(|_| {
+        rprintln!("RTT Debug: Button pressed!"); 
+        led_toggle(RED_LED_PORT, RED_LED_PIN);
+        led_toggle(GREEN_LED_PORT, GREEN_LED_PIN);
+    });
+
     button::button_clear_interrupt(USER_BTN_PIN);
 }
