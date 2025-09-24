@@ -18,9 +18,8 @@ use crate::board::{
 // Removed static PERIPHERALS to avoid Sync error
 //use crate::{button::{button_configure_interrupt, button_init}, led::{led_init, led_off}};
 
-use itm_debug::*;
-
-mod itm_debug;
+// ITM debug module removed - not supported on STM32F429I-DISCO
+// mod itm_debug;
 mod board;
 mod button;
 mod gpio;
@@ -38,20 +37,7 @@ macro_rules! init_cortex_m_peripherals {
     };
 }
 
-// Macro to get ITM stimulus port 0
-#[allow(unused_macros)]
-macro_rules! get_itm_stim {
-    ($cp:expr) => {
-        &mut $cp.ITM.stim[0]
-    };
-}
-
-// Macro to get ITM stimulus port directly (for use in interrupt handlers)
-macro_rules! get_itm_stim_direct {
-    ($port:expr) => {
-        unsafe { &mut (*cortex_m::peripheral::ITM::PTR).stim[$port] }
-    };
-}
+// Note: ITM macros removed - RTT is used instead for STM32F429I-DISCO
 
 #[unsafe(no_mangle)]
 fn main() {
@@ -73,26 +59,10 @@ fn main() {
     // Initialize RTT for debug output
     rtt_init_print!();
     
-    rprintln!("RTT Debug: Starting STM32F429I-DISCO program");
-
-    itm_init(&mut cp);
-    rprintln!("RTT Debug: ITM initialized");
+    rprintln!("RTT Debug: Starting rtt_prints on STM32F429I-DISCO");
 
     systick_init(&mut cp);
     rprintln!("RTT Debug: SysTick initialized");
-
-    // Test ITM (won't work on F429I-DISCO due to missing SWO connection)
-    unsafe {
-        let itm = &mut *cortex_m::peripheral::ITM::PTR;
-        
-        if itm.stim[0].is_fifo_ready() {
-            itm.stim[0].write_u8(b'H');
-            itm.stim[0].write_u8(b'i');
-            itm.stim[0].write_u8(b'\n');
-        }
-    }
-    
-    rprintln!("RTT Debug: ITM test completed - likely no output on F429I-DISCO");
     
     let mut counter = 0;
     loop {
@@ -125,9 +95,8 @@ fn systick_init(cp: &mut cortex_m::Peripherals) {
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
 extern "C" fn EXTI0_Handler() {
-    let stim0 = get_itm_stim_direct!(0);
-    cortex_m::iprintln!(stim0, "Button pressed!\n");
+    rprintln!("RTT Debug: Button pressed!");
     led_toggle(RED_LED_PORT, RED_LED_PIN);
-    led_toggle(GREEN_LED_PORT, GREEN_LED_PIN);
+    led_toggle(GREEN_LED_PORT, GREEN_LED_PORT);
     button::button_clear_interrupt(USER_BTN_PIN);
 }

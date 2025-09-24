@@ -2,19 +2,18 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Build and generate .bin",
+			"label": "Build RTT project and generate .bin",
 			"type": "shell",
-			"command": "cargo build --target thumbv7em-none-eabihf && arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/debug/led_button_interrupt target/thumbv7em-none-eabihf/debug/led_button_interrupt.bin",
+			"command": "cargo build --target thumbv7em-none-eabihf && arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/debug/rtt_prints target/thumbv7em-none-eabihf/debug/rtt_prints.bin",
 			"problemMatcher": [],
 			"group": "build"
 		},
 		{
-			"label": "Run ITM Parser",
+			"label": "Build and generate .bin (RTT)",
 			"type": "shell",
-			"command": "itm-parser --probe 0483:374b --connect-under-reset --chip STM32F429ZI 10000 8000000 1000000",
-			"isBackground": true,
+			"command": "cargo build --target thumbv7em-none-eabihf && arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/debug/rtt_prints target/thumbv7em-none-eabihf/debug/rtt_prints.bin",
 			"problemMatcher": [],
-			"group": "test"
+			"group": "build"
 		}
 	]
 }

@@ -173,16 +173,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d758ba1b47b00caf47f24925c0074ecb20d6dfcffe7f6d53395c0465674841a"
 
 [[package]]
-name = "led_button_interrupt"
-version = "0.1.0"
-dependencies = [
- "cortex-m",
- "panic-halt",
- "rtt-target",
- "stm32f4xx-hal",
-]
-
-[[package]]
 name = "litrs"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -265,6 +255,16 @@ checksum = "10b34c9e6832388e45f3c01f1bb60a016384a0a4ad80cdd7d34913bed25037f0"
 dependencies = [
  "critical-section",
  "ufmt-write",
+]
+
+[[package]]
+name = "rtt_prints"
+version = "0.1.0"
+dependencies = [
+ "cortex-m",
+ "panic-halt",
+ "rtt-target",
+ "stm32f4xx-hal",
 ]
 
 [[package]]

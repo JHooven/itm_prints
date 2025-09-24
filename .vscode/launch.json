@@ -4,7 +4,7 @@
         {
             "name": "Cortex Debug (ST-Link)",
             "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/target/thumbv7em-none-eabihf/debug/led_button_interrupt",
+            "executable": "${workspaceFolder}/target/thumbv7em-none-eabihf/debug/rtt_prints",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
